@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -11,7 +12,8 @@ import (
 func main() {
 	// stdin()
 	// file()
-	conn()
+	// conn()
+	buf()
 }
 
 // 3.4.1 os.Stdin
@@ -54,4 +56,14 @@ func conn() {
 	}
 
 	io.Copy(os.Stdout, conn)
+}
+
+// 3.4.4
+// bytes.Buffer
+func buf() {
+	buf := bytes.NewBuffer([]byte("hello"))
+
+	buf.Write([]byte(" world"))
+
+	io.Copy(os.Stdout, buf)
 }
