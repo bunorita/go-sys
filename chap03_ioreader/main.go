@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
+
 	"net"
 	"os"
 )
@@ -13,7 +15,9 @@ func main() {
 	// stdin()
 	// file()
 	// conn()
-	buf()
+	// buf()
+	// limit()
+	section()
 }
 
 // 3.4.1 os.Stdin
@@ -66,4 +70,23 @@ func buf() {
 	buf.Write([]byte(" world"))
 
 	io.Copy(os.Stdout, buf)
+}
+
+// 3.5.1
+// io.LimitReader
+func limit() {
+	buf := bytes.NewBuffer([]byte("hello"))
+
+	limitR := io.LimitReader(buf, 3)
+
+	io.Copy(os.Stdout, limitR) // => hel
+}
+
+// io.SectionReader
+func section() {
+	r := strings.NewReader("Example of io.SectionReader\n")
+
+	sectionR := io.NewSectionReader(r, 14, 7)
+
+	io.Copy(os.Stdout, sectionR) // => Section
 }
