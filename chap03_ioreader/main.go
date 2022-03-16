@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"log"
@@ -17,7 +18,9 @@ func main() {
 	// conn()
 	// buf()
 	// limit()
-	section()
+	// section()
+
+	convertEndian()
 }
 
 // 3.4.1 os.Stdin
@@ -89,4 +92,14 @@ func section() {
 	sectionR := io.NewSectionReader(r, 14, 7)
 
 	io.Copy(os.Stdout, sectionR) // => Section
+}
+
+func convertEndian() {
+
+	data := []byte{0x0, 0x0, 0x27, 0x10} // 10000 (32bits big endian)
+	var i int32
+
+	// 実行環境のエンディアンの数値に変換する
+	binary.Read(bytes.NewReader(data), binary.BigEndian, &i)
+	fmt.Println(i) // => 10000 (little endian for Intel CPU)
 }
