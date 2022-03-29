@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"log"
 	"net"
@@ -19,8 +20,8 @@ func main() {
 	// limit()
 	// section()
 	// convertEndian()
-
-	inspectPNG()
+	// inspectPNG()
+	insertTextChunk()
 }
 
 // 3.4.1 os.Stdin
@@ -114,7 +115,7 @@ func inspectPNG() {
 
 	chunks := readPNGChunks(file)
 	for _, chunk := range chunks {
-		dumpPNGChunk(chunk)
+		dumpPNGChunk(chunk) // => IHDR, sRGB, IDAT, IEND
 	}
 }
 
@@ -151,4 +152,52 @@ func dumpPNGChunk(chunk io.Reader) {
 	typ := make([]byte, 4) // 4-byte for type
 	chunk.Read(typ)
 	fmt.Printf("chunk %q (%d bytes)\n", string(typ), length)
+	if bytes.Equal(typ, []byte("tEXt")) {
+		rawText := make([]byte, length)
+		chunk.Read(rawText)
+		fmt.Println(string(rawText))
+	}
+}
+
+// 3.5.4
+func insertTextChunk() {
+	file, err := os.Open("img/lenna.png")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer file.Close()
+
+	newFile, err := os.Create("img/lenna2.png")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer newFile.Close()
+
+	chunks := readPNGChunks(file)
+	io.WriteString(newFile, "\x89PNG\r\n\x1a\n")          // write signature header
+	io.Copy(newFile, chunks[0])                           // write IHDR chunk
+	io.Copy(newFile, textPNGChunk("ASCII PROGRAMMING++")) // write text chunk
+	for _, chunk := range chunks[1:] {                    // write rest of chunks
+		io.Copy(newFile, chunk)
+	}
+
+	// inspect newf ifle
+	for _, chunk := range readPNGChunks(newFile) {
+		dumpPNGChunk(chunk)
+	}
+}
+
+func textPNGChunk(text string) io.Reader {
+	byteData := []byte(text)
+
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.BigEndian, int32(len(byteData))) // write length field
+	buf.WriteString("tEXt")                                   // write type field
+	buf.Write(byteData)                                       // write data field
+	// calculate and write CRC field
+	crc := crc32.NewIEEE()
+	io.WriteString(crc, "tEXt")
+	binary.Write(buf, binary.BigEndian, crc.Sum32())
+
+	return buf
 }
