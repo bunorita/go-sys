@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -21,7 +22,9 @@ func main() {
 	// section()
 	// convertEndian()
 	// inspectPNG()
-	insertTextChunk()
+	// insertTextChunk()
+	// readString()
+	scanString()
 }
 
 // 3.4.1 os.Stdin
@@ -200,4 +203,33 @@ func textPNGChunk(text string) io.Reader {
 	binary.Write(buf, binary.BigEndian, crc.Sum32())
 
 	return buf
+}
+
+var source = `1 line
+2 line
+3 line`
+
+// 3.6.1 read string line by line
+// bufio.Reader ReadReadstring
+func readString() {
+	r := bufio.NewReader(strings.NewReader(source))
+	for {
+		line, err := r.ReadString('\n')
+		fmt.Printf("%#v\n", line)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+}
+
+// bufio.Scanner Scan
+func scanString() {
+	scanner := bufio.NewScanner(strings.NewReader(source))
+	// scanner.Split(bufio.ScanWords) specify SplitFunc
+	for scanner.Scan() {
+		fmt.Printf("%#v\n", scanner.Text()) // NOTE: '\n' is removed
+	}
 }
