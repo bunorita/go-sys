@@ -24,7 +24,9 @@ func main() {
 	// inspectPNG()
 	// insertTextChunk()
 	// readString()
-	scanString()
+	// scanString()
+	fscan()
+	fscanf()
 }
 
 // 3.4.1 os.Stdin
@@ -205,13 +207,12 @@ func textPNGChunk(text string) io.Reader {
 	return buf
 }
 
-var source = `1 line
-2 line
-3 line`
-
 // 3.6.1 read string line by line
 // bufio.Reader ReadReadstring
 func readString() {
+	source := `1 line
+2 line
+3 line`
 	r := bufio.NewReader(strings.NewReader(source))
 	for {
 		line, err := r.ReadString('\n')
@@ -227,9 +228,35 @@ func readString() {
 
 // bufio.Scanner Scan
 func scanString() {
+	source := `1 line
+2 line
+3 line`
 	scanner := bufio.NewScanner(strings.NewReader(source))
-	// scanner.Split(bufio.ScanWords) specify SplitFunc
+	scanner.Split(bufio.ScanWords) // specify SplitFunc
 	for scanner.Scan() {
 		fmt.Printf("%#v\n", scanner.Text()) // NOTE: '\n' is removed
 	}
+}
+
+// 3.6.2 reader scans and stores into variables
+// fmt.Fscan
+func fscan() {
+	source := "123 1.234 1.0e4 test"
+	r := strings.NewReader(source)
+	var i int
+	var f, g float64
+	var s string
+	fmt.Fscan(r, &i, &f, &g, &s) // expect space-separetor
+	fmt.Printf("i=%#v f=%#v g=%#v s=%#v\n", i, f, g, s)
+}
+
+// fmt.Fscanf
+func fscanf() {
+	source := "123, 1.234, 1.0e4, test"
+	r := strings.NewReader(source)
+	var i int
+	var f, g float64
+	var s string
+	fmt.Fscanf(r, "%v, %v, %v, %v", &i, &f, &g, &s) // specify format
+	fmt.Printf("i=%#v f=%#v g=%#v s=%#v\n", i, f, g, s)
 }
